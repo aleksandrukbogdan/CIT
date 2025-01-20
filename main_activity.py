@@ -1,7 +1,16 @@
-import matplotlib.pyplot as plt
+
 import numpy as np
 import matplotlib.tri as mtri
 import math
+
+def sin(a):
+    return math.sin(a)
+
+def asin(a):
+    return math.asin(a)
+
+def degrees(a):
+    return math.degrees(a)
 
 # Объявление диэлектрической проницаемости
 epsi_sens = [2.1, 2, 1.9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.9, 2, 2.1, 2.2, 2.3, 2.3, 2.3, 2.3, 2.3, 80, 80,
@@ -9,9 +18,25 @@ epsi_sens = [2.1, 2, 1.9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.9, 2, 2.1, 2.2, 2.3
              2.3, 2.3, 2.3, 2.3, 2.2]
 epsi = 8.85 * 10 ** (-12)
 sensors_value = []
+# Объявление диэлектрической проницаемости
+epsi = 8.85 * 10 ** (-12)
+sensors_value = []
+pipe_d = 0.3
+pi = np.pi
 
 # Ввод входных данных пользователем
-while True:
+"""while True:
+    try:
+        flow_v = float(input("Введите среднюю скорость потока в м/с:\n"))
+    except ValueError:
+        print("Введите число!")
+    if flow_v > 2:
+        print("Скорость слишком велика для самотечного участка, попробуйте меньше 2 м/с")
+    else:
+        break"""
+flow_v = 4
+# Ввод входных данных пользователем
+"""while True:
     try:
         type_of_sensor = int(input("Введите тип конденсаторов\n1 - плоский\n2 - цилиндрический\n3 - сферический\n"))
     except ValueError:
@@ -19,9 +44,11 @@ while True:
     if 3 < type_of_sensor or type_of_sensor < 1:
         print("Введите число от 1 до 3!")
     else:
-        break
+        break"""
 
-while True:
+type_of_sensor = 1
+
+"""while True:
     try:
         n_sensors: int = int(input("Введите количество конденсаторов: 16 или 32\n"))
     except ValueError:
@@ -29,8 +56,30 @@ while True:
     if n_sensors not in {16, 32}:
         print("Введите число: 16, 32")
     else:
-        break
+        break"""
+n_sensors = 32
 
+
+Q = (flow_v * pi * pipe_d ** 2) / 4 * 3600
+"""if Q <= 180:
+    epsi_sens = [2.1, 2.1, 2.1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2.1, 2.1, 2.2, 2.3, 2.3, 2.3, 2.3, 2.3,
+                 80, 80,
+                 80, 2.3,
+                 2.3, 2.3, 2.3, 2.3, 2.2]
+elif 180 < Q <= 355:
+    epsi_sens = [2.1, 2.1, 2.1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.9, 2, 2.1, 2.1, 2.2, 2.3, 2.3, 2.3, 2.3, 2.3,
+                 80, 80,
+                 80, 2.3,
+                 2.3, 2.3, 2.3, 2.3, 2.2]
+else:
+    epsi_sens = [2.1, 2.1, 2.1, 2.1, 2.1, 1, 1, 1, 1, 1, 1, 2.1, 2.1, 1.9, 2, 2.1, 2.1, 2.2, 2.3, 2.3, 2.3, 2.3, 2.3,
+                 80, 80,
+                 80, 2.3,
+                 2.3, 2.3, 2.3, 2.3, 2.2]"""
+epsi_sens = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.2, 2.3, 2.3, 2.3, 2.3, 2.3,
+                 80, 80,
+                 80, 2.3,
+                 2.3, 2.3, 2.3, 2.3, 2.2]
 match type_of_sensor:
     case 1:
         # Объявление постоянных, плоский конденсатор
@@ -359,22 +408,33 @@ for triangle in tri:
     zfaces[i] = sum(mid_v) / len(mid_v)
     i += 1
 
-alpha = math.degrees(abs(math.asin(oil_max)) + abs(math.asin(oil_min)))
-sector_s = 2 * (alpha * math.pi / 360)
-triang_s = abs(math.sin(360 - 2 * alpha))
-fill_factor = (sector_s + triang_s) / math.pi
-print("Коэффициент заполнения самотечного участка "+str(round(fill_factor * 100, 2)) + "%")
-
+# Расчет расхода трубопровода
+alpha = degrees(abs(asin(oil_max)) + abs(asin(oil_min)))
+sector_s = 2 * (alpha * pi / 360)
+triang_s = abs(sin(360 - 2 * alpha))
+fill_factor = (sector_s + triang_s) / pi
+print("Коэффициент заполнения самотечного участка " + str(round(fill_factor * 100, 2)) + "%")
+print("Расход: " + str(round(Q, 2)) + " м^3/ч")
+z_simp = np.linspace(0, 0, len(x))
+for i in range(len(x)):
+    if y[i] >= oil_max:
+        z_simp[i] = 1
+    elif oil_min <= y[i] < oil_max:
+        z_simp[i] = 0.5
+    else:
+        z_simp[i] = 0
+"""
 # Построение 1 графика
-fig, (ax1, ax2) = plt.subplots(1, 2, layout="constrained")
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
 ax1.set_aspect('equal')
 ax2.set_aspect('equal')
-ax1.axis('equal')
-ax2.axis('equal')
+ax3.set_aspect('equal')
+ax1.set_title('Значения конденсаторов')
+ax2.set_title('Обработанные значения')
+ax3.set_title('Упрощенное отображение')
 im = ax1.tripcolor(x, y, tri, facecolors=zfaces,
-                   shading='flat', cmap=plt.cm.plasma)
+                   shading='flat', cmap='plasma')
 fig.colorbar(im)
-
 # Построение 2 графика
 triang = mtri.Triangulation(x, y)
 z = np.linspace(0, 0, len(x))
@@ -388,5 +448,11 @@ norm = plt.Normalize(vmax=abs(z).max(), vmin=-abs(z).max())
 kwargs = dict(triangles=new.triangles, linewidth=0.2, shading='flat', cmap='plasma')
 tpc = ax2.tripcolor(new.x, new.y, new_z, **kwargs)
 fig.colorbar(tpc)
+# Построение 3 графика
+levels = np.arange(0., 1.1, 0.001)
+tcf = ax3.tricontourf(triang, np.asarray(z_simp), levels=levels, cmap='plasma')
+# ax3.tricontour(triang, np.asarray(z), colors='k', linestyles='solid')
+fig.colorbar(tcf)
 
 plt.show()
+"""
